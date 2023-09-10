@@ -1,41 +1,17 @@
-import { Project, SourceFile } from 'ts-morph';
+
 import * as path from 'path';
 import * as fs from 'fs';
+import transformFile from './lib';
 
-function transformFile(filePath: string, entityName: string, outputDirectory: string) {
-  const project = new Project();
-  const sourceFile = project.addSourceFileAtPath(filePath);
+// Get inputDirectory, outputDirectory, and entityName from process arguments
+const [, , inputDirectory, outputDirectory, entityName] = process.argv;
 
-  // Clone the source file's content
-  const sourceFileText = sourceFile.getFullText();
-
-  // Create a new source file with the same content
-  const sourceFileCopy = project.createSourceFile('temp.ts', sourceFileText, { overwrite: true });
-
-  // Function to rename nodes containing 'Entity' or 'entities' in the copy
-  function renameNodes(node: any) {
-    if (node.getKindName() === 'FunctionDeclaration' || node.getKindName() === 'FunctionExpression' || node.getKindName() === 'Identifier') {
-      const text = node.getText();
-      if (text.includes('Entity') || text.includes('entities')) {
-        const updatedText = node.getText().replace(/Entity|entities/g, entityName);
-        node.replaceWithText(`${updatedText}`);
-      }
-    }
-
-    node.getChildren().forEach(renameNodes);
-  }
-
-  // Rename nodes in the copy
-  renameNodes(sourceFileCopy);
-
-  // Save the modified copy to the output directory
-  const outputFilePath = path.join(outputDirectory, path.basename(filePath).replace('Entity', entityName));
-  fs.writeFileSync(outputFilePath, sourceFileCopy.getFullText());
+// Check if all required arguments are provided
+if (!inputDirectory || !outputDirectory || !entityName) {
+  console.error('Usage: node script.js inputDirectory outputDirectory entityName');
+  process.exit(1);
 }
 
-const inputDirectory = 'input';
-const outputDirectory = 'output';
-const entityName = 'Renamed';
 
 // Read all .tsx files in the input directory and transform them
 const files = fs.readdirSync(inputDirectory);
