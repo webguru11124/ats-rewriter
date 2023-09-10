@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "start": "ts-node src/index.ts input output Renamed",
+    "start": "nodemon --exec ts-node src/index.ts input output Renamed",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

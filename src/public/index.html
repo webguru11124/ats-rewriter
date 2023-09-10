@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Static Page</title>
+</head>
+
+<body>
+    <div style="display: flex;">
+        <div style="flex: 1;">
+            <h2>Left Text Area</h2>
+            <textarea id="leftTextarea" rows="4" cols="50"></textarea>
+        </div>
+        <div style="flex: 1;">
+            <h2>Middle</h2>
+            <input type="text" id="textInput" placeholder="Enter text">
+            <button id="submitButton">Submit</button>
+        </div>
+        <div style="flex: 1;">
+            <h2>Right Text Area</h2>
+            <textarea id="rightTextarea" rows="4" cols="50"></textarea>
+        </div>
+    </div>
+
+    <script>
+        const leftTextarea = document.getElementById('leftTextarea');
+        const rightTextarea = document.getElementById('rightTextarea');
+        const textInput = document.getElementById('textInput');
+        const submitButton = document.getElementById('submitButton');
+
+        submitButton.addEventListener('click', async (event) => {
+            event.preventDefault();
+            const payload = leftTextarea.value;
+            try {
+                const response = await fetch('/api/rewrite', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ payload, entityName: textInput.value }),
+                });
+                const data = await response.json();
+                rightTextarea.value = data.response;
+            } catch (error) {
+                console.error(error);
+                rightTextarea.value = 'Error occurred while calling the backend API.';
+            }
+        });
+    </script>
+</body>
+
+</html>

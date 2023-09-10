@@ -1,9 +1,9 @@
 
-import { Project, SourceFile } from 'ts-morph';
+import { Project, SourceFile, Node } from 'ts-morph';
 import * as path from 'path';
 import * as fs from 'fs';
 
-function transformFile(filePath: string, entityName: string, outputDirectory: string) {
+export function transformFile(filePath: string, entityName: string, outputDirectory: string) {
     const project = new Project();
     const sourceFile = project.addSourceFileAtPath(filePath);
 
@@ -32,6 +32,35 @@ function transformFile(filePath: string, entityName: string, outputDirectory: st
     // Save the modified copy to the output directory
     const outputFilePath = path.join(outputDirectory, path.basename(filePath).replace('Entity', entityName));
     fs.writeFileSync(outputFilePath, sourceFileCopy.getFullText());
+
 }
 
-export default transformFile;
+
+export function transformCode(data: string, entityName: string): string {
+    const project = new Project();
+    const sourceFile = project.createSourceFile('temp.ts', data, { overwrite: true });
+
+    // Function to rename nodes containing 'Entity' or 'entities'
+    function renameNodes(node: Node) {
+        if (
+            node.getKindName() === 'FunctionDeclaration' ||
+            node.getKindName() === 'FunctionExpression' ||
+            node.getKindName() === 'Identifier'
+        ) {
+            const text = node.getText();
+            if (text.includes('Entity') || text.includes('entities')) {
+                const updatedText = text.replace(/Entity|entities/g, entityName);
+                node.replaceWithText(`${updatedText}`);
+            }
+        }
+
+        node.getChildren().forEach(renameNodes);
+    }
+
+    // Rename nodes in the source code
+    renameNodes(sourceFile);
+
+    // Return the modified source code as a string
+    return sourceFile.getFullText();
+}
+
